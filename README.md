@@ -134,7 +134,11 @@ the flags above. Command-line flags take precedence.
 
 ## License
 
-MIT.
+Licensed under the MIT License. See [LICENSE](LICENSE) for the full text.
+
+Unless you explicitly state otherwise, any contribution intentionally
+submitted for inclusion in this project by you shall be licensed under the
+MIT License, without any additional terms or conditions.
 
 ## Contribution
 
