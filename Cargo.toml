@@ -1,0 +1,11 @@
+[package]
+name = "gradus"
+version = "0.0.0"
+edition = "2021"
+description = "A fast, native build tool for the JVM."
+license = "MIT"
+repository = "https://github.com/duskine/gradus"
+keywords = ["build", "jvm", "gradle", "java", "kotlin"]
+categories = ["development-tools::build-utils"]
+
+[dependencies]
