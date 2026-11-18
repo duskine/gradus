@@ -92,7 +92,7 @@ gradus dependencies     # print the resolved dependency tree
 ## A minimal build.gradus.toml:
 
 ```toml
-schema_version = 1
+gradus_version = 1
 
 [project]
 name = "example"
@@ -129,8 +129,8 @@ Global flags, valid on every command:
 Exit codes are stable: 0 success, 1 task failure, 2 configuration
 error, 3 dependency resolution failure, 4 internal error.
 
-Environment variables (GRADUS_USER_HOME, GRADUS_CACHE_DIR,
-GRADUS_OFFLINE, GRADUS_MAX_WORKERS, and others) provide defaults for
+Environment variables (`GRADUS_USER_HOME`, `GRADUS_CACHE_DIR`,
+`GRADUS_OFFLINE`, `GRADUS_MAX_WORKERS`, and others) provide defaults for
 the flags above. Command-line flags take precedence.
 
 ## License
