@@ -8,4 +8,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish gradus-model
+        run: cargo publish -p gradus-model --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for index to settle
+        run: sleep 30
+
+      - name: Publish gradus-config
+        run: cargo publish -p gradus-config --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish gradus-core
+        run: cargo publish -p gradus-core --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Wait for index to settle
+        run: sleep 30
+
+      - name: Publish gradus
+        run: cargo publish -p gradus --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
