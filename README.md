@@ -148,7 +148,7 @@ Contributions are welcome. Before opening a pull request:
 - Open an issue for anything larger than a bug fix, so the design can be
   agreed on first
 - Keep changes focused; one concern per pull request
-- Run cargo fmt, cargo clippy -- -D warnings, and cargo test before
+- Run `cargo fmt, cargo clippy -- -D warnings`, and `cargo test` before
   submitting
 - Add tests for new behavior, including fixture projects where relevant
 
