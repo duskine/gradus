@@ -32,7 +32,7 @@ impl fmt::Display for TaskId {
 /// Deserialized form of `build.gradus.toml` or `build.gradus`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BuildFile {
-    pub schema_version: u32,
+    pub gradus_version: u32,
     pub project: ProjectSection,
     #[serde(default)]
     pub dependencies: DependenciesSection,
