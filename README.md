@@ -153,4 +153,4 @@ Contributions are welcome. Before opening a pull request:
 - Add tests for new behavior, including fixture projects where relevant
 
 Discussion happens in GitHub issues. By participating you agree to the
-Code of Conduct.
+[Code of Conduct](CODE_OF_CONDUCT.md).
