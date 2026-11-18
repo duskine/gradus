@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/gradus.svg)](https://crates.io/crates/gradus)
 [![Downloads](https://img.shields.io/crates/d/gradus.svg)](https://crates.io/crates/gradus)
 [![Documentation](https://docs.rs/gradus/badge.svg)](https://docs.rs/gradus)
-[CI](https://github.com/duskine/gradus/actions/workflows/ci.yml/badge.svg)
+[![CI](https://github.com/duskine/gradus/actions/workflows/ci.yml/badge.svg)](https://github.com/<USER>/gradus/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 [![MSRV](https://img.shields.io/badge/MSRV-1.75-blue.svg)](#)
 
