@@ -1,15 +1,30 @@
-[package]
-name = "gradus"
-version = "0.1.0"
+[workspace]
+resolver = "2"
+members = [
+    "crates/gradus",
+    "crates/gradus-model",
+    "crates/gradus-config",
+    "crates/gradus-core",
+    "crates/gradus-cli",
+]
+
+[workspace.package]
+version = "0.1.1"
 edition = "2021"
-description = "A fast, native build tool for the JVM."
+rust-version = "1.75"
 license = "MIT"
 repository = "https://github.com/duskine/gradus"
-readme = "README.md"
-keywords = ["build", "jvm", "gradle", "java", "kotlin"]
-categories = ["development-tools::build-utils"]
-rust-version = "1.75"
+authors = ["duskine"]
+readme = "../../README.md"
 
-[dependencies]
+[workspace.dependencies]
 serde = { version = "1", features = ["derive"] }
 toml = "0.8"
+thiserror = "1"
+clap = { version = "4", features = ["derive"] }
+tempfile = "3"
+
+gradus-model = { path = "crates/gradus-model", version = "0.1.1" }
+gradus-config = { path = "crates/gradus-config", version = "0.1.1" }
+gradus-core = { path = "crates/gradus-core", version = "0.1.1" }
+gradus = { path = "crates/gradus", version = "0.1.1" }
