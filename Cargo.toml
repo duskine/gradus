@@ -1,11 +1,15 @@
 [package]
 name = "gradus"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
 description = "A fast, native build tool for the JVM."
 license = "MIT"
 repository = "https://github.com/duskine/gradus"
+readme = "README.md"
 keywords = ["build", "jvm", "gradle", "java", "kotlin"]
 categories = ["development-tools::build-utils"]
+rust-version = "1.75"
 
 [dependencies]
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"
