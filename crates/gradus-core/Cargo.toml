@@ -1,0 +1,12 @@
+[package]
+name = "gradus-core"
+description = "Task graph and execution engine for Gradus."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+readme.workspace = true
+
+[dependencies]
+gradus-model = { workspace = true }
