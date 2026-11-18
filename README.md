@@ -4,7 +4,7 @@
 [![Downloads](https://img.shields.io/crates/d/gradus.svg)](https://crates.io/crates/gradus)
 [![Documentation](https://docs.rs/gradus/badge.svg)](https://docs.rs/gradus)
 [![CI](https://github.com/duskine/gradus/actions/workflows/ci.yml/badge.svg)](https://github.com/duskine/gradus/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-MIT--2.0-blue.svg)](#license)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](#license)
 [![MSRV](https://img.shields.io/badge/MSRV-1.75-blue.svg)](#)
 
 A fast, native build tool for the JVM, written in Rust.
