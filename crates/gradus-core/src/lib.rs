@@ -122,7 +122,7 @@ pub fn graph_from_build_file(_build: &BuildFile) -> TaskGraph {
         depends_on: vec![compile.clone()],
     });
     graph.add(TaskNode {
-        id: jar,
+        id: jar.clone(),
         depends_on: vec![compile],
     });
     graph.add(TaskNode {
