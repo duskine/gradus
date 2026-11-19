@@ -110,15 +110,15 @@ pub fn graph_from_build_file(_build: &BuildFile) -> TaskGraph {
 
     let mut graph = TaskGraph::new();
     graph.add(TaskNode {
-        id: clean,
+        id: clean.clone(),
         depends_on: vec![],
     });
     graph.add(TaskNode {
-        id: compile,
+        id: compile.clone(),
         depends_on: vec![],
     });
     graph.add(TaskNode {
-        id: test,
+        id: test.clone(),
         depends_on: vec![compile.clone()],
     });
     graph.add(TaskNode {
