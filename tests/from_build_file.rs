@@ -1,0 +1,48 @@
+use gradus_core::graph_from_build_file;
+use gradus_model::{BuildFile, ProjectSection};
+
+fn fixture() -> BuildFile {
+    BuildFile {
+        gradus_version: 1,
+        project: ProjectSection {
+            name: "example".into(),
+            version: "0.1.0".into(),
+            jvm: Some("17".into()),
+        },
+        dependencies: Default::default(),
+    }
+}
+
+#[test]
+fn graph_has_five_tasks() {
+    let g = graph_from_build_file(&fixture());
+    assert_eq!(g.nodes().len(), 5);
+}
+
+#[test]
+fn build_depends_on_jar_and_test() {
+    let g = graph_from_build_file(&fixture());
+    let node = g.nodes().iter().find(|n| n.id.task == "build").unwrap();
+    let deps: Vec<_> = node.depends_on.iter().map(|d| d.task.as_str()).collect();
+    assert!(deps.contains(&"jar"));
+    assert!(deps.contains(&"test"));
+}
+
+#[test]
+fn resolve_build_excludes_clean() {
+    let g = graph_from_build_file(&fixture());
+    let tasks = g.resolve(&gradus_model::TaskId::new("", "build")).unwrap();
+    let names: Vec<_> = tasks.iter().map(|t| t.task.as_str()).collect();
+    assert!(!names.contains(&"clean"));
+    assert!(names.contains(&"build"));
+    assert!(names.contains(&"compile"));
+    assert_eq!(names.last(), Some(&"build"));
+}
+
+#[test]
+fn resolve_clean_is_just_clean() {
+    let g = graph_from_build_file(&fixture());
+    let tasks = g.resolve(&gradus_model::TaskId::new("", "clean")).unwrap();
+    assert_eq!(tasks.len(), 1);
+    assert_eq!(tasks[0].task, "clean");
+}
