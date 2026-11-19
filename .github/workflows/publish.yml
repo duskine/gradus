@@ -12,22 +12,47 @@ jobs:
         run: rustup show
 
       - name: Publish gradus-model
-        run: cargo publish -p gradus-model --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          if cargo search gradus-model --limit 1 2>/dev/null | grep -q 'gradus-model = "0.1.2"'; then
+            echo "gradus-model@0.1.2 already published, skipping"
+          else
+            cargo publish -p gradus-model --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          fi
 
       - name: Wait for index
         run: sleep 30
 
       - name: Publish gradus-config
-        run: cargo publish -p gradus-config --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          if cargo search gradus-config --limit 1 2>/dev/null | grep -q 'gradus-config = "0.1.2"'; then
+            echo "gradus-config@0.1.2 already published, skipping"
+          else
+            cargo publish -p gradus-config --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          fi
 
       - name: Publish gradus-core
-        run: cargo publish -p gradus-core --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          if cargo search gradus-core --limit 1 2>/dev/null | grep -q 'gradus-core = "0.1.2"'; then
+            echo "gradus-core@0.1.2 already published, skipping"
+          else
+            cargo publish -p gradus-core --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          fi
 
       - name: Wait for index
         run: sleep 30
 
       - name: Publish gradus
-        run: cargo publish -p gradus --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          if cargo search gradus --limit 1 2>/dev/null | grep -q 'gradus = "0.1.2"'; then
+            echo "gradus@0.1.2 already published, skipping"
+          else
+            cargo publish -p gradus --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          fi
 
       - name: Publish gradus-cli
-        run: cargo publish -p gradus-cli --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          if cargo search gradus-cli --limit 1 2>/dev/null | grep -q 'gradus-cli = "0.1.2"'; then
+            echo "gradus-cli@0.1.2 already published, skipping"
+          else
+            cargo publish -p gradus-cli --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          fi
