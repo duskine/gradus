@@ -9,9 +9,9 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
-rust-version = "1.75"
+rust-version = "1.85"
 license = "MIT"
 repository = "https://github.com/duskine/gradus"
 authors = ["duskine"]
@@ -24,7 +24,7 @@ thiserror = "1"
 clap = { version = "4", features = ["derive"] }
 tempfile = "3"
 
-gradus-model = { path = "crates/gradus-model", version = "0.1.1" }
-gradus-config = { path = "crates/gradus-config", version = "0.1.1" }
-gradus-core = { path = "crates/gradus-core", version = "0.1.1" }
-gradus = { path = "crates/gradus", version = "0.1.1" }
+gradus-model = { path = "crates/gradus-model", version = "0.1.2" }
+gradus-config = { path = "crates/gradus-config", version = "0.1.2" }
+gradus-core = { path = "crates/gradus-core", version = "0.1.2" }
+gradus = { path = "crates/gradus", version = "0.1.2" }
