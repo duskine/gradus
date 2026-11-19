@@ -1,15 +1,19 @@
+mod java_build;
+
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
 use clap::{CommandFactory, Parser, Subcommand};
-use gradus::{
-    find_settings_file, graph_from_build_file, load_build_file, load_settings_file, BuildFile,
-    TaskGraph, TaskId,
-};
+use gradus::{graph_from_build_file, load_build_file, load_settings_file, BuildFile, TaskId};
+use java_build::{build_project, clean_project, JavaTools};
 
 #[derive(Parser)]
-#[command(name = "gradus", version, about = "A fast, native build tool for the JVM.")]
+#[command(
+    name = "gradus",
+    version,
+    about = "A fast, native build tool for the JVM."
+)]
 struct Cli {
     #[command(subcommand)]
     command: Option<Command>,
@@ -23,13 +27,13 @@ enum Command {
     Validate,
     /// Print the task graph derived from the build file.
     Tasks,
-    /// Show what would run, without executing anything.
+    /// Compile Java sources and package them as a JAR.
     Build {
         /// Print the task plan and exit without executing.
         #[arg(long)]
         dry_run: bool,
     },
-    /// Remove build artifacts. Reserved for a future release.
+    /// Remove the generated build/ directory.
     Clean,
 }
 
@@ -116,8 +120,7 @@ fn cmd_tasks() -> u8 {
     let graph = graph_from_build_file(&build);
     match graph.topological_order() {
         Ok(order) => {
-            let nodes: HashMap<_, _> =
-                graph.nodes().iter().map(|n| (n.id.clone(), n)).collect();
+            let nodes: HashMap<_, _> = graph.nodes().iter().map(|n| (n.id.clone(), n)).collect();
             for id in &order {
                 if let Some(node) = nodes.get(id) {
                     if node.depends_on.is_empty() {
@@ -166,21 +169,41 @@ fn cmd_build(dry_run: bool) -> u8 {
             return 2;
         }
     };
-    if !dry_run {
-        eprintln!("note: build execution is not implemented in 0.1.2.");
-        eprintln!("re-run with --dry-run to see the task plan.");
-        return 4;
+    if dry_run {
+        println!("would run:");
+        for id in &order {
+            println!("  {id}");
+        }
+        return 0;
     }
-    println!("would run:");
-    for id in &order {
-        println!("  {id}");
+
+    match build_project(&cwd, &build, &JavaTools::default()) {
+        Ok(jar) => {
+            println!("created {}", jar.display());
+            0
+        }
+        Err(error) => {
+            eprintln!("error: {error}");
+            1
+        }
     }
-    0
 }
 
 fn cmd_clean() -> u8 {
-    eprintln!("note: clean execution is not implemented in 0.1.2.");
-    4
+    match clean_project(&current_dir()) {
+        Ok(true) => {
+            println!("removed build artifacts");
+            0
+        }
+        Ok(false) => {
+            println!("nothing to clean");
+            0
+        }
+        Err(error) => {
+            eprintln!("error: {error}");
+            1
+        }
+    }
 }
 
 fn current_dir() -> PathBuf {
@@ -195,10 +218,4 @@ fn load_or_exit(dir: &Path) -> Option<BuildFile> {
             None
         }
     }
-}
-
-// silence unused-import warnings for paths used in error branches
-#[allow(dead_code)]
-fn _unused(_: Option<TaskGraph>) {
-    let _ = find_settings_file;
 }

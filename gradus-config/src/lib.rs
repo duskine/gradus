@@ -13,13 +13,21 @@ pub enum DiscoveryError {
         "ambiguous build file in '{}'\n\n  found: {}\n  found: {}\n\nGradus requires exactly one native build file per project.\nDelete or rename one of the two files and try again.",
         .dir.display(), .toml.display(), .bare.display()
     )]
-    AmbiguousBuildFile { dir: PathBuf, toml: PathBuf, bare: PathBuf },
+    AmbiguousBuildFile {
+        dir: PathBuf,
+        toml: PathBuf,
+        bare: PathBuf,
+    },
 
     #[error(
         "ambiguous settings file in '{}'\n\n  found: {}\n  found: {}\n\nGradus requires exactly one native settings file per project.\nDelete or rename one of the two files and try again.",
         .dir.display(), .toml.display(), .bare.display()
     )]
-    AmbiguousSettingsFile { dir: PathBuf, toml: PathBuf, bare: PathBuf },
+    AmbiguousSettingsFile {
+        dir: PathBuf,
+        toml: PathBuf,
+        bare: PathBuf,
+    },
 }
 
 pub fn find_build_file(dir: &Path) -> Result<PathBuf, DiscoveryError> {

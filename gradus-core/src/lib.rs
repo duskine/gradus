@@ -99,12 +99,11 @@ impl TaskGraph {
 
 /// Derive the built-in task graph from a parsed build file.
 ///
-/// The graph is fixed in 0.1.2: `clean`, `compile`, `jar`, `test`, `build`.
-/// Future config sections (`[tasks.*]`) will modify it.
+/// The initial Java build graph is `clean`, `compile`, `jar`, and `build`.
+/// Test execution and future config-defined tasks will be added separately.
 pub fn graph_from_build_file(_build: &BuildFile) -> TaskGraph {
     let clean = TaskId::new("", "clean");
     let compile = TaskId::new("", "compile");
-    let test = TaskId::new("", "test");
     let jar = TaskId::new("", "jar");
     let build = TaskId::new("", "build");
 
@@ -118,16 +117,12 @@ pub fn graph_from_build_file(_build: &BuildFile) -> TaskGraph {
         depends_on: vec![],
     });
     graph.add(TaskNode {
-        id: test.clone(),
-        depends_on: vec![compile.clone()],
-    });
-    graph.add(TaskNode {
         id: jar.clone(),
         depends_on: vec![compile],
     });
     graph.add(TaskNode {
         id: build,
-        depends_on: vec![jar, test],
+        depends_on: vec![jar],
     });
     graph
 }

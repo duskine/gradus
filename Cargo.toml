@@ -1,11 +1,11 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/gradus",
-    "crates/gradus-model",
-    "crates/gradus-config",
-    "crates/gradus-core",
-    "crates/gradus-cli",
+    "gradus",
+    "gradus-model",
+    "gradus-config",
+    "gradus-core",
+    "gradus-cli",
 ]
 
 [workspace.package]
@@ -24,7 +24,7 @@ thiserror = "1"
 clap = { version = "4", features = ["derive"] }
 tempfile = "3"
 
-gradus-model = { path = "crates/gradus-model", version = "0.1.2" }
-gradus-config = { path = "crates/gradus-config", version = "0.1.2" }
-gradus-core = { path = "crates/gradus-core", version = "0.1.2" }
-gradus = { path = "crates/gradus", version = "0.1.2" }
+gradus-model = { path = "gradus-model", version = "0.1.2" }
+gradus-config = { path = "gradus-config", version = "0.1.2" }
+gradus-core = { path = "gradus-core", version = "0.1.2" }
+gradus = { path = "gradus", version = "0.1.2" }
