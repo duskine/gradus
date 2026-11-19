@@ -10,9 +10,10 @@
 A fast, native build tool for the JVM, written in Rust.
 
 Gradus is a native build tool for JVM projects. Its first build path
-compiles dependency-free Java sources and packages them as a JAR using a
-local JDK. It reads project configuration from TOML and is not a wrapper
-around Gradle; the Gradus process itself does not require a JVM to start.
+compiles Java sources and packages them as a JAR using a local JDK. It can
+resolve fixed-version Maven dependencies into the compile classpath. It reads
+project configuration from TOML and is not a wrapper around Gradle; Gradus
+itself does not require a JVM to start.
 
 ## Why
 
@@ -28,10 +29,9 @@ native binary with a parseable config format. The goal is a build tool
 that starts in milliseconds, produces the same output on every machine,
 and can be read and audited without executing arbitrary code.
 
-Status: early development. Java compilation and JAR packaging are
-implemented for dependency-free projects. Dependency resolution, test
-execution, Kotlin support, incremental builds, and parallel execution are
-planned but not yet available.
+Status: early development. Java compilation, JAR packaging, and a bounded
+Maven Central resolver are implemented. Test execution, Kotlin support,
+incremental builds, and parallel execution are not available yet.
 
 ## Features
 
@@ -41,9 +41,9 @@ Planned and in progress:
 - Parallel task execution over a validated DAG, with cycle detection
 - Incremental builds via input and output hashing
 - Local and remote build cache
-- Maven dependency resolution with parent POMs, BOM imports, and
-  transitive conflict resolution
-- Committed lockfile for reproducible, offline-capable builds
+- Maven Central resolution for fixed coordinates, including transitive JARs,
+  basic parent POM inheritance, and nearest-first version selection
+- `gradus.lock` records resolved artifacts and SHA-256 checksums for offline builds
 - Broader language and task support: Kotlin, test, run, and dependency-aware Java builds
 - Multi-project builds with project-relative task paths
 - TOML configuration, no scripting required
@@ -63,7 +63,7 @@ not part of the current release.
 
 ## Usage
 
-Install from crates.io once a release is published:
+Install the Gradus program from crates.io after version 0.1.3 is published:
 
 ```sh
 cargo install gradus
@@ -80,18 +80,38 @@ gradus init
 ```sh
 gradus validate
 gradus tasks
+gradus fix
+gradus dependencies
+gradus dependencies --offline
 gradus build
 gradus build --dry-run
+gradus build --offline
 gradus clean
 ```
 
-The initial build supports Java files under `src/main/java`, requires
-`javac` and `jar` on `PATH`, and uses `project.jvm` as the `javac --release`
-target when set. It writes classes to
-`build/classes/java/main` and the JAR to `build/libs/<name>-<version>.jar`.
-Declared `implementation` dependencies fail with a clear message until
-Maven resolution is implemented. Tests, Kotlin sources, and running
-applications are not supported yet.
+`gradus fix` validates the project configuration, creates a missing
+`src/main/java` directory, and checks whether `javac` and `jar` are
+available. It does not install system packages or alter shell settings.
+If no `.java` files exist yet, it reports that they must be added before
+building. Use `gradus fix --dry-run` to preview directory creation.
+
+The build supports Java files under `src/main/java`, requires `javac` and
+`jar` on `PATH`, and uses `project.jvm` as the `javac --release` target when
+set. It writes classes to `build/classes/java/main` and the JAR to
+`build/libs/<name>-<version>.jar`. Direct dependencies use
+`group:artifact:version` strings in `dependencies.implementation` and are
+resolved from Maven Central. Set `GRADUS_MAVEN_REPOSITORY` to use an HTTP(S)
+mirror, or `GRADUS_CACHE_DIR` to change the artifact cache location.
+
+An online build writes `gradus.lock`; commit it with the project. Offline
+builds read the lockfile, require the corresponding JARs in Gradus's local
+cache, and verify each SHA-256 checksum. The initial resolver supports
+fixed versions, parent POMs, properties, dependency management (including
+BOM imports), exclusions, and compile-scope transitive JAR dependencies.
+Runtime, provided, test, and optional transitive dependencies are omitted
+from the compile classpath. Version ranges, snapshots, non-JAR dependency
+types, and property-based parent coordinates are not supported yet. Tests,
+Kotlin sources, and running applications are not supported yet.
 
 ### Inspect the task graph:
 
@@ -110,14 +130,20 @@ version = "0.1.0"
 jvm = "17"
 ```
 
-The configuration schema accepts dependency declarations, but builds with
-`implementation` dependencies fail explicitly until Maven resolution is ready.
+Example dependency declaration:
+
+```toml
+[dependencies]
+implementation = ["org.apache.commons:commons-lang3:3.14.0"]
+```
 
 ## Current CLI scope
 
-Supported command options are `gradus build --dry-run`, `--help`, and
-`--version`. Other flags such as parallel execution, caching, and offline
-dependency resolution are planned but not implemented yet.
+The `gradus` package provides the command-line executable as well as the
+library API. `gradus-cli` remains available as a compatibility package.
+Offline dependency resolution is available with `--offline`. Parallel
+execution, incremental compilation, tests, and runtime launching remain
+planned.
 
 Exit codes currently used: 0 for success, 1 for build or clean failure,
 2 for invalid configuration, and 4 for initialization or environment

@@ -2,7 +2,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use gradus::BuildFile;
+use crate::maven::resolve_dependencies;
+use crate::BuildFile;
 
 #[derive(Debug, Clone)]
 pub(crate) struct JavaTools {
@@ -32,14 +33,8 @@ pub(crate) fn build_project(
     project_root: &Path,
     build: &BuildFile,
     tools: &JavaTools,
+    offline: bool,
 ) -> Result<PathBuf, String> {
-    if !build.dependencies.implementation.is_empty() {
-        return Err(
-            "declared implementation dependencies are not supported yet; remove them before building"
-                .to_owned(),
-        );
-    }
-
     let source_root = project_root.join("src/main/java");
     let mut sources = Vec::new();
     collect_java_sources(&source_root, &mut sources)
@@ -51,6 +46,10 @@ pub(crate) fn build_project(
             source_root.display()
         ));
     }
+
+    let dependencies =
+        resolve_dependencies(project_root, &build.dependencies.implementation, offline)
+            .map_err(|error| format!("dependency resolution failed: {error}"))?;
 
     let build_dir = project_root.join("build");
     ensure_directory_is_safe(&build_dir, "build output directory")?;
@@ -70,6 +69,15 @@ pub(crate) fn build_project(
     let mut javac = Command::new(&tools.javac);
     if let Some(release) = &build.project.jvm {
         javac.arg("--release").arg(release);
+    }
+    if !dependencies.is_empty() {
+        let classpath = std::env::join_paths(
+            dependencies
+                .iter()
+                .map(|dependency| dependency.jar_path.as_os_str()),
+        )
+        .map_err(|error| format!("failed to construct Java classpath: {error}"))?;
+        javac.arg("--class-path").arg(classpath);
     }
     javac.arg("-d").arg(&classes_dir).args(&sources);
     let status = javac
@@ -221,7 +229,7 @@ fn safe_component(value: &str, fallback: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gradus::{DependenciesSection, ProjectSection};
+    use crate::{DependenciesSection, ProjectSection};
     use std::fs;
 
     fn build_file() -> BuildFile {
@@ -266,8 +274,13 @@ mod tests {
                 fs::set_permissions(tool, permissions).unwrap();
             }
 
-            let output =
-                build_project(temp.path(), &build_file(), &JavaTools::new(javac, jar)).unwrap();
+            let output = build_project(
+                temp.path(),
+                &build_file(),
+                &JavaTools::new(javac, jar),
+                false,
+            )
+            .unwrap();
             assert!(output.is_file());
             assert!(temp
                 .path()
@@ -280,17 +293,21 @@ mod tests {
     #[test]
     fn rejects_missing_sources_instead_of_creating_an_empty_jar() {
         let temp = tempfile::tempdir().unwrap();
-        let error = build_project(temp.path(), &build_file(), &JavaTools::default()).unwrap_err();
+        let error =
+            build_project(temp.path(), &build_file(), &JavaTools::default(), false).unwrap_err();
         assert!(error.contains("no Java source files"));
     }
 
     #[test]
-    fn rejects_declared_compile_dependencies_until_resolution_exists() {
+    fn rejects_malformed_compile_dependency_coordinates() {
         let temp = tempfile::tempdir().unwrap();
+        let source = temp.path().join("src/main/java/Example.java");
+        fs::create_dir_all(source.parent().unwrap()).unwrap();
+        fs::write(source, "class Example {}\n").unwrap();
         let mut config = build_file();
-        config.dependencies.implementation = vec!["org.example:library:1.0".to_owned()];
-        let error = build_project(temp.path(), &config, &JavaTools::default()).unwrap_err();
-        assert!(error.contains("dependencies are not supported yet"));
+        config.dependencies.implementation = vec!["not-a-coordinate".to_owned()];
+        let error = build_project(temp.path(), &config, &JavaTools::default(), false).unwrap_err();
+        assert!(error.contains("expected group:artifact:version"));
     }
 
     #[test]

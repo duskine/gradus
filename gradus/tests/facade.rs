@@ -1,6 +1,6 @@
 #[test]
 fn version_matches_workspace() {
-    assert_eq!(gradus::version(), "0.1.2");
+    assert_eq!(gradus::version(), "0.1.3");
 }
 
 #[test]

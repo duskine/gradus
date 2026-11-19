@@ -1,6 +1,6 @@
 [package]
 name = "gradus-cli"
-description = "Command-line interface for Gradus."
+description = "Compatibility launcher for the Gradus command-line program."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -16,7 +16,3 @@ path = "src/main.rs"
 
 [dependencies]
 gradus = { workspace = true }
-clap = { workspace = true }
-
-[dev-dependencies]
-tempfile = { workspace = true }

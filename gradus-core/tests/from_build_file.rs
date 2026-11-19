@@ -20,6 +20,24 @@ fn graph_has_four_tasks() {
 }
 
 #[test]
+fn declared_dependencies_add_resolution_before_compile() {
+    let mut build = fixture();
+    build.dependencies.implementation = vec!["org.example:library:1.0".into()];
+    let graph = graph_from_build_file(&build);
+
+    let compile = graph
+        .nodes()
+        .iter()
+        .find(|node| node.id.task == "compile")
+        .unwrap();
+    assert_eq!(compile.depends_on[0].task, "resolveDependencies");
+    assert!(graph
+        .nodes()
+        .iter()
+        .any(|node| node.id.task == "resolveDependencies"));
+}
+
+#[test]
 fn build_depends_on_jar_only_until_test_execution_is_implemented() {
     let g = graph_from_build_file(&fixture());
     let node = g.nodes().iter().find(|n| n.id.task == "build").unwrap();

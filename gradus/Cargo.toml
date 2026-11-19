@@ -10,7 +10,21 @@ readme.workspace = true
 keywords = ["build", "jvm", "gradle", "java", "kotlin"]
 categories = ["development-tools::build-utils"]
 
+[[bin]]
+name = "gradus"
+path = "src/main.rs"
+
 [dependencies]
 gradus-model = { workspace = true }
 gradus-config = { workspace = true }
 gradus-core = { workspace = true }
+clap = { workspace = true }
+serde = { workspace = true }
+toml = { workspace = true }
+ureq = { workspace = true }
+roxmltree = { workspace = true }
+sha2 = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
