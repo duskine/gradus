@@ -2,7 +2,28 @@
 
 use std::path::{Path, PathBuf};
 
-use gradus_model::{BuildFile, SettingsFile, BUILD_FILE_NAMES, SETTINGS_FILE_NAMES};
+use gradus_model::BuildFile;
+use serde::{Deserialize, Serialize};
+
+/// The two valid native build file names.
+pub const BUILD_FILE_NAMES: [&str; 2] = ["build.gradus.toml", "build.gradus"];
+
+/// The two valid native settings file names.
+pub const SETTINGS_FILE_NAMES: [&str; 2] = ["settings.gradus.toml", "settings.gradus"];
+
+/// Gradle compatibility file names, ignored while a native build file is present.
+pub const COMPAT_BUILD_FILE_NAMES: [&str; 2] = ["build.gradle.kts", "build.gradle"];
+
+/// Deserialized form of `settings.gradus.toml` or `settings.gradus`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct SettingsFile {
+    pub gradus_version: u32,
+    #[serde(default)]
+    pub root_project: Option<String>,
+    #[serde(default)]
+    pub include: Vec<String>,
+}
 
 #[derive(Debug, thiserror::Error)]
 pub enum DiscoveryError {

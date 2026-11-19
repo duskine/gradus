@@ -4,16 +4,6 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-/// The two valid native build file names.
-pub const BUILD_FILE_NAMES: [&str; 2] = ["build.gradus.toml", "build.gradus"];
-
-/// The two valid native settings file names.
-pub const SETTINGS_FILE_NAMES: [&str; 2] = ["settings.gradus.toml", "settings.gradus"];
-
-/// Gradle compatibility file names. Recognized as out of scope while a
-/// native build file is present.
-pub const COMPAT_BUILD_FILE_NAMES: [&str; 2] = ["build.gradle.kts", "build.gradle"];
-
 /// Globally unique identity of a task: project path plus task name.
 #[derive(Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct TaskId {
@@ -73,15 +63,4 @@ pub struct DependenciesSection {
 pub struct DependencyScope {
     #[serde(default)]
     pub implementation: Vec<String>,
-}
-
-/// Deserialized form of `settings.gradus.toml` or `settings.gradus`.
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct SettingsFile {
-    pub gradus_version: u32,
-    #[serde(default)]
-    pub root_project: Option<String>,
-    #[serde(default)]
-    pub include: Vec<String>,
 }

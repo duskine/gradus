@@ -47,6 +47,7 @@ jobs:
           publish_if_missing gradus-model
           sleep 30
           publish_if_missing gradus-config
+          sleep 30
           publish_if_missing gradus-core
           sleep 30
           publish_if_missing gradus
