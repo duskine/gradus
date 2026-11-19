@@ -6,7 +6,9 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
-publish = false
+readme.workspace = true
+keywords = ["build", "jvm", "cli", "gradle", "java"]
+categories = ["command-line-utilities", "development-tools::build-utils"]
 
 [[bin]]
 name = "gradus"
