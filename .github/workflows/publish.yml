@@ -8,11 +8,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+      - name: Install pinned toolchain
+        run: rustup show
 
       - name: Publish gradus-model
         run: cargo publish -p gradus-model --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-      - name: Wait for index to settle
+      - name: Wait for index
         run: sleep 30
 
       - name: Publish gradus-config
@@ -21,8 +23,11 @@ jobs:
       - name: Publish gradus-core
         run: cargo publish -p gradus-core --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
-      - name: Wait for index to settle
+      - name: Wait for index
         run: sleep 30
 
       - name: Publish gradus
         run: cargo publish -p gradus --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+
+      - name: Publish gradus-cli
+        run: cargo publish -p gradus-cli --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
