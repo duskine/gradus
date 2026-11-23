@@ -12,8 +12,8 @@ mod translate;
 pub use migration::{analyze_gradle_script, DiagnosticLevel, MigrationDiagnostic, MigrationReport};
 
 pub use translate::{
-    build_gradus_to_kotlin_dsl, build_model_to_kotlin_dsl,
-    settings_gradus_to_kotlin_dsl, settings_model_to_kotlin_dsl, TranslationError,
+    build_gradus_to_kotlin_dsl, build_model_to_kotlin_dsl, settings_gradus_to_kotlin_dsl,
+    settings_model_to_kotlin_dsl, TranslationError,
 };
 
 /// The two valid native build file names.
@@ -129,7 +129,7 @@ pub fn load_build_file(dir: &Path) -> Result<BuildFile, LoadError> {
     let parsed = if path.file_name().and_then(|name| name.to_str()) == Some("build.gradus") {
         let normalized = custom::to_toml(&text).map_err(|source| LoadError::CustomParse {
             path: path.clone(),
-            source: source.to_string(),
+            message: source.to_string(),
         })?;
         toml::from_str(&normalized).map_err(|source| LoadError::Parse { path, source })?
     } else {
@@ -150,7 +150,7 @@ pub fn load_settings_file(dir: &Path) -> Result<Option<SettingsFile>, LoadError>
     let parsed = if path.file_name().and_then(|name| name.to_str()) == Some("settings.gradus") {
         let normalized = custom::to_toml(&text).map_err(|source| LoadError::CustomParse {
             path: path.clone(),
-            source: source.to_string(),
+            message: source.to_string(),
         })?;
         toml::from_str(&normalized).map_err(|source| LoadError::Parse { path, source })?
     } else {
@@ -176,6 +176,6 @@ pub enum LoadError {
         source: toml::de::Error,
     },
 
-    #[error("failed to parse '{}': {source}", .path.display())]
-    CustomParse { path: PathBuf, source: String },
+    #[error("failed to parse '{}': {message}", .path.display())]
+    CustomParse { path: PathBuf, message: String },
 }

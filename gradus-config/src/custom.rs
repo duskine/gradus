@@ -40,7 +40,10 @@ pub fn to_toml(input: &str) -> Result<String, SyntaxError> {
         }
 
         if line.starts_with('[') {
-            validate_header(line).map_err(|message| SyntaxError { line: line_no, message })?;
+            validate_header(line).map_err(|message| SyntaxError {
+                line: line_no,
+                message,
+            })?;
             current_section = line.trim_matches('[').trim_matches(']').to_owned();
             if current_section != "dependencies" && current_section != "root_project" {
                 output.push_str(line);
@@ -69,8 +72,14 @@ pub fn to_toml(input: &str) -> Result<String, SyntaxError> {
             line: line_no,
             message: "expected `key value` (the `=` is optional)".into(),
         })?;
-        validate_key(key).map_err(|message| SyntaxError { line: line_no, message })?;
-        validate_value(value).map_err(|message| SyntaxError { line: line_no, message })?;
+        validate_key(key).map_err(|message| SyntaxError {
+            line: line_no,
+            message,
+        })?;
+        validate_value(value).map_err(|message| SyntaxError {
+            line: line_no,
+            message,
+        })?;
 
         if current_section == "dependencies" {
             let parsed: toml::Value = toml::from_str(&format!("value = {value}\n"))
@@ -97,12 +106,17 @@ pub fn to_toml(input: &str) -> Result<String, SyntaxError> {
                 _ => {
                     return Err(SyntaxError {
                         line: line_no,
-                        message: "dependency values must be a coordinate string or list of strings".into(),
+                        message: "dependency values must be a coordinate string or list of strings"
+                            .into(),
                     });
                 }
             }
         } else if current_section == "root_project" && (key == "name" || key == "include") {
-            let normalized_key = if key == "name" { "root_project" } else { "include" };
+            let normalized_key = if key == "name" {
+                "root_project"
+            } else {
+                "include"
+            };
             output.push_str(normalized_key);
             output.push_str(" = ");
             output.push_str(value);
@@ -140,7 +154,7 @@ fn flush_dependencies(output: &mut String, entries: &mut BTreeMap<String, Vec<St
         output.push_str(
             &values
                 .iter()
-                .map(|value| format!("{}", toml_string(value)))
+                .map(|value| toml_string(value))
                 .collect::<Vec<_>>()
                 .join(", "),
         );
@@ -174,7 +188,10 @@ fn parse_plugin(line: &str) -> Result<(String, Option<String>), String> {
 }
 
 fn take_value(input: &str) -> Result<(String, &str), String> {
-    let first = input.chars().next().ok_or_else(|| "expected a value".to_owned())?;
+    let first = input
+        .chars()
+        .next()
+        .ok_or_else(|| "expected a value".to_owned())?;
     if first == '\'' || first == '"' {
         let end = input[1..]
             .find(first)
@@ -183,7 +200,10 @@ fn take_value(input: &str) -> Result<(String, &str), String> {
         let raw = &input[..=end];
         let parsed: toml::Value = toml::from_str(&format!("value = {raw}\n"))
             .map_err(|error| format!("invalid quoted value: {error}"))?;
-        Ok((toml_string(parsed["value"].as_str().unwrap_or_default()), &input[end + 1..]))
+        Ok((
+            toml_string(parsed["value"].as_str().unwrap_or_default()),
+            &input[end + 1..],
+        ))
     } else {
         let end = input.find(char::is_whitespace).unwrap_or(input.len());
         Ok((input[..end].to_owned(), &input[end..]))
@@ -196,7 +216,7 @@ fn toml_string(value: &str) -> String {
 
 fn validate_header(line: &str) -> Result<(), String> {
     let is_array = line.starts_with("[[");
-    let (open, close) = if is_array { ("[[", "]]" ) } else { ("[", "]") };
+    let (open, close) = if is_array { ("[[", "]]") } else { ("[", "]") };
     if !line.starts_with(open) || !line.ends_with(close) {
         return Err("malformed section header".into());
     }
@@ -229,7 +249,10 @@ fn split_assignment(line: &str) -> Option<(&str, &str)> {
 }
 
 fn validate_key(key: &str) -> Result<(), String> {
-    if key.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '_' || ch == '-') {
+    if key
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || ch == '_' || ch == '-')
+    {
         Ok(())
     } else {
         Err(format!("invalid key `{key}`"))
@@ -258,7 +281,10 @@ mod tests {
     fn parses_plugin_and_android_statements() {
         let parsed = to_toml("[[plugins]]\nid 'com.android.application' version '8.7.3'\n[android]\nnamespace 'com.example'\ncompile_sdk 35\n").unwrap();
         let value: toml::Value = toml::from_str(&parsed).unwrap();
-        assert_eq!(value["plugins"][0]["id"].as_str(), Some("com.android.application"));
+        assert_eq!(
+            value["plugins"][0]["id"].as_str(),
+            Some("com.android.application")
+        );
         assert_eq!(value["plugins"][0]["version"].as_str(), Some("8.7.3"));
         assert_eq!(value["android"]["compile_sdk"].as_integer(), Some(35));
     }
@@ -267,7 +293,13 @@ mod tests {
     fn groups_dependency_declarations_under_one_table() {
         let parsed = to_toml("[[dependencies]]\nimplementation 'org.example:one:1'\ntest_implementation 'org.example:test:1'\n").unwrap();
         let value: toml::Value = toml::from_str(&parsed).unwrap();
-        assert_eq!(value["dependencies"]["implementation"][0].as_str(), Some("org.example:one:1"));
-        assert_eq!(value["dependencies"]["test_implementation"][0].as_str(), Some("org.example:test:1"));
+        assert_eq!(
+            value["dependencies"]["implementation"][0].as_str(),
+            Some("org.example:one:1")
+        );
+        assert_eq!(
+            value["dependencies"]["test_implementation"][0].as_str(),
+            Some("org.example:test:1")
+        );
     }
 }

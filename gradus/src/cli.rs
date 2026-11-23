@@ -6,8 +6,8 @@ use std::process::{Command as ProcessCommand, ExitCode};
 use crate::java_build::{build_project, clean_project, JavaTools};
 use crate::maven::resolve_dependencies;
 use crate::{
-    analyze_gradle_script, graph_from_build_file, load_build_file, load_settings_file,
-    BuildFile, DiagnosticLevel, TaskId,
+    analyze_gradle_script, graph_from_build_file, load_build_file, load_settings_file, BuildFile,
+    DiagnosticLevel, TaskId,
 };
 use clap::{CommandFactory, Parser, Subcommand};
 
@@ -176,7 +176,10 @@ fn cmd_port(name: &str, version: &str) -> u8 {
     }
 
     if !found {
-        eprintln!("error: no Gradle build/settings script found in '{}'", cwd.display());
+        eprintln!(
+            "error: no Gradle build/settings script found in '{}'",
+            cwd.display()
+        );
         return 2;
     }
 
@@ -209,7 +212,11 @@ fn cmd_port(name: &str, version: &str) -> u8 {
     let warnings = diagnostics.len() - errors;
     println!("migration preflight found {errors} blocking issue(s) and {warnings} warning(s)");
     println!("no files were changed; Gradle-to-Gradus conversion is not implemented yet");
-    if errors > 0 { 2 } else { 0 }
+    if errors > 0 {
+        2
+    } else {
+        0
+    }
 }
 
 fn cmd_tasks() -> u8 {

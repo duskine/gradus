@@ -50,7 +50,11 @@ pub fn analyze_gradle_script(path: impl AsRef<Path>, source: &str) -> MigrationR
     for (index, raw_line) in source.lines().enumerate() {
         let line_no = index + 1;
         let line = raw_line.trim();
-        if line.is_empty() || line.starts_with("//") || line.starts_with("/*") || line.starts_with('*') {
+        if line.is_empty()
+            || line.starts_with("//")
+            || line.starts_with("/*")
+            || line.starts_with('*')
+        {
             continue;
         }
         if line.starts_with("plugins") && line.contains('{') {
@@ -91,7 +95,8 @@ pub fn analyze_gradle_script(path: impl AsRef<Path>, source: &str) -> MigrationR
                         "Verify every feature contributed by this plugin. Use Gradle for execution until Gradus implements an equivalent native integration.",
                     );
                 }
-            } else if line.contains("alias(") || line.starts_with("id(") || line.starts_with("id ") {
+            } else if line.contains("alias(") || line.starts_with("id(") || line.starts_with("id ")
+            {
                 report.push(
                     DiagnosticLevel::Error,
                     "GRADUS-PORT-PLUGIN-DYNAMIC",
@@ -113,7 +118,15 @@ pub fn analyze_gradle_script(path: impl AsRef<Path>, source: &str) -> MigrationR
             continue;
         }
 
-        if contains_any(line, &["buildscript {", "apply plugin:", "apply(plugin", "plugins.apply("]) {
+        if contains_any(
+            line,
+            &[
+                "buildscript {",
+                "apply plugin:",
+                "apply(plugin",
+                "plugins.apply(",
+            ],
+        ) {
             report.push(
                 DiagnosticLevel::Error,
                 "GRADUS-PORT-UNSUPPORTED-SYNTAX",
@@ -152,7 +165,18 @@ pub fn analyze_gradle_script(path: impl AsRef<Path>, source: &str) -> MigrationR
             );
         }
 
-        if in_android_block && contains_any(line, &["productFlavors", "buildFeatures", "compileOptions", "packagingOptions", "lint {"]) {
+        if in_android_block
+            && contains_any(
+                line,
+                &[
+                    "productFlavors",
+                    "buildFeatures",
+                    "compileOptions",
+                    "packagingOptions",
+                    "lint {",
+                ],
+            )
+        {
             report.push(
                 DiagnosticLevel::Warning,
                 "GRADUS-PORT-ANDROID-SETTING-UNSUPPORTED",
@@ -162,7 +186,9 @@ pub fn analyze_gradle_script(path: impl AsRef<Path>, source: &str) -> MigrationR
                 "Preserve this setting in Gradle or add a Gradus schema field and exporter mapping before migrating.",
             );
         }
-        if in_dependencies_block && (line.contains("platform(") || line.contains("project(") || line.contains("files(")) {
+        if in_dependencies_block
+            && (line.contains("platform(") || line.contains("project(") || line.contains("files("))
+        {
             report.push(
                 DiagnosticLevel::Warning,
                 "GRADUS-PORT-DEPENDENCY-UNSUPPORTED",
@@ -204,7 +230,9 @@ impl MigrationReport {
 
 fn plugin_id(line: &str) -> Option<&str> {
     let line = line.trim().trim_end_matches(';');
-    let after_id = line.strip_prefix("id(").or_else(|| line.strip_prefix("id "))?;
+    let after_id = line
+        .strip_prefix("id(")
+        .or_else(|| line.strip_prefix("id "))?;
     if let Some(rest) = after_id.strip_prefix('\'') {
         let end = rest.find('\'')?;
         return Some(&rest[..end]);
@@ -269,6 +297,9 @@ mod tests {
             "plugins {\n    id 'com.android.application' version '8.7.3'\n}\n",
         );
         assert_eq!(report.diagnostics.len(), 1);
-        assert_eq!(report.diagnostics[0].code, "GRADUS-PORT-PLUGIN-NOT-EXECUTABLE");
+        assert_eq!(
+            report.diagnostics[0].code,
+            "GRADUS-PORT-PLUGIN-NOT-EXECUTABLE"
+        );
     }
 }

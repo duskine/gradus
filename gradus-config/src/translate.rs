@@ -61,7 +61,10 @@ pub fn build_model_to_kotlin_dsl(model: &BuildFile) -> Result<String, Translatio
     if let Some(group) = model.project.group.as_deref() {
         out.push_str(&format!("group = {}\n", kotlin_string(group)));
     }
-    out.push_str(&format!("version = {}\n", kotlin_string(&model.project.version)));
+    out.push_str(&format!(
+        "version = {}\n",
+        kotlin_string(&model.project.version)
+    ));
 
     if let Some(target) = model.project.jvm.as_deref() {
         let target_number = target
@@ -100,9 +103,9 @@ pub fn settings_model_to_kotlin_dsl(model: &SettingsFile) -> Result<String, Tran
             .as_ref()
             .map(|settings| settings.mode.as_str())
         {
-            Some("centralized") => out.push_str(
-                "    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\n",
-            ),
+            Some("centralized") => {
+                out.push_str("    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)\n")
+            }
             Some("project") | None => {}
             Some(other) => return Err(TranslationError::UnsupportedResolutionMode(other.into())),
         }
@@ -111,7 +114,9 @@ pub fn settings_model_to_kotlin_dsl(model: &SettingsFile) -> Result<String, Tran
         out.push_str("    }\n}\n\n");
     } else if let Some(mode) = model.dependency_resolution.as_ref() {
         if mode.mode != "project" && mode.mode != "centralized" {
-            return Err(TranslationError::UnsupportedResolutionMode(mode.mode.clone()));
+            return Err(TranslationError::UnsupportedResolutionMode(
+                mode.mode.clone(),
+            ));
         }
         if mode.mode == "centralized" {
             out.push_str("dependencyResolutionManagement {\n");
@@ -210,7 +215,10 @@ fn append_signing_config(
         ));
     }
     if let Some(value) = config.release_key_alias.as_deref() {
-        out.push_str(&format!("            keyAlias = {}\n", env_provider(value)?));
+        out.push_str(&format!(
+            "            keyAlias = {}\n",
+            env_provider(value)?
+        ));
     }
     if let Some(value) = config.release_store_password.as_deref() {
         out.push_str(&format!(
@@ -219,7 +227,10 @@ fn append_signing_config(
         ));
     }
     if let Some(value) = config.release_key_password.as_deref() {
-        out.push_str(&format!("            keyPassword = {}\n", env_provider(value)?));
+        out.push_str(&format!(
+            "            keyPassword = {}\n",
+            env_provider(value)?
+        ));
     }
     out.push_str("        }\n    }\n");
     Ok(())
@@ -333,9 +344,7 @@ fn kotlin_string(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        build_gradus_to_kotlin_dsl, settings_gradus_to_kotlin_dsl,
-    };
+    use super::{build_gradus_to_kotlin_dsl, settings_gradus_to_kotlin_dsl};
 
     #[test]
     fn translates_group_plugin_and_android_configuration() {
