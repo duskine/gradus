@@ -828,7 +828,7 @@ fn read_or_download(
         .to_string();
     let response = agent
         .get(&url)
-        .set("User-Agent", "Gradus/0.1.3")
+        .set("User-Agent", "Gradus/0.1.4")
         .call()
         .map_err(|error| match error {
             ureq::Error::Status(code, _) => {
