@@ -18,7 +18,7 @@ fn missing_settings_file_is_none() {
 #[test]
 fn parses_minimal_settings() {
     let tmp = TempDir::new().unwrap();
-    touch(tmp.path(), "settings.gradus.toml", "gradus_version = 1\n");
+    touch(tmp.path(), "settings.gradus.toml", "root_project = \"demo\"\n");
     let s = load_settings_file(tmp.path()).unwrap().unwrap();
     assert_eq!(s.gradus_version, 1);
     assert!(s.include.is_empty());

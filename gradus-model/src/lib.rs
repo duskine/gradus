@@ -34,10 +34,19 @@ impl fmt::Display for TaskId {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct BuildFile {
+    #[serde(default = "default_gradus_version")]
     pub gradus_version: u32,
     pub project: ProjectSection,
     #[serde(default)]
     pub dependencies: DependenciesSection,
+    #[serde(default)]
+    pub plugins: Vec<PluginDeclaration>,
+    #[serde(default)]
+    pub android: Option<AndroidSection>,
+}
+
+fn default_gradus_version() -> u32 {
+    1
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -46,7 +55,75 @@ pub struct ProjectSection {
     pub name: String,
     pub version: String,
     #[serde(default)]
+    pub group: Option<String>,
+    #[serde(default)]
     pub jvm: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PluginDeclaration {
+    pub id: String,
+    #[serde(default)]
+    pub version: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AndroidSection {
+    #[serde(default)]
+    pub namespace: Option<String>,
+    #[serde(default)]
+    pub compile_sdk: Option<u32>,
+    #[serde(default)]
+    pub default_config: Option<AndroidDefaultConfig>,
+    #[serde(default)]
+    pub build_types: std::collections::BTreeMap<String, AndroidBuildType>,
+    #[serde(default)]
+    pub signing: Option<AndroidSigningConfig>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AndroidBuildType {
+    #[serde(default)]
+    pub debuggable: Option<bool>,
+    #[serde(default)]
+    pub minify_enabled: Option<bool>,
+    #[serde(default)]
+    pub shrink_resources: Option<bool>,
+    #[serde(default)]
+    pub application_id_suffix: Option<String>,
+    #[serde(default)]
+    pub proguard_files: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AndroidSigningConfig {
+    #[serde(default)]
+    pub release_keystore: Option<String>,
+    #[serde(default)]
+    pub release_key_alias: Option<String>,
+    #[serde(default)]
+    pub release_store_password: Option<String>,
+    #[serde(default)]
+    pub release_key_password: Option<String>,
+}
+
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct AndroidDefaultConfig {
+    #[serde(default)]
+    pub application_id: Option<String>,
+    #[serde(default)]
+    pub min_sdk: Option<u32>,
+    #[serde(default)]
+    pub target_sdk: Option<u32>,
+    #[serde(default)]
+    pub version_code: Option<u32>,
+    #[serde(default)]
+    pub version_name: Option<String>,
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -54,6 +131,8 @@ pub struct ProjectSection {
 pub struct DependenciesSection {
     #[serde(default)]
     pub implementation: Vec<String>,
+    #[serde(default)]
+    pub test_implementation: Vec<String>,
     #[serde(default)]
     pub test: Option<DependencyScope>,
 }

@@ -5,6 +5,17 @@ use std::path::{Path, PathBuf};
 use gradus_model::BuildFile;
 use serde::{Deserialize, Serialize};
 
+mod custom;
+mod migration;
+mod translate;
+
+pub use migration::{analyze_gradle_script, DiagnosticLevel, MigrationDiagnostic, MigrationReport};
+
+pub use translate::{
+    build_gradus_to_kotlin_dsl, build_model_to_kotlin_dsl,
+    settings_gradus_to_kotlin_dsl, settings_model_to_kotlin_dsl, TranslationError,
+};
+
 /// The two valid native build file names.
 pub const BUILD_FILE_NAMES: [&str; 2] = ["build.gradus.toml", "build.gradus"];
 
@@ -18,11 +29,37 @@ pub const COMPAT_BUILD_FILE_NAMES: [&str; 2] = ["build.gradle.kts", "build.gradl
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct SettingsFile {
+    #[serde(default = "default_gradus_version")]
     pub gradus_version: u32,
     #[serde(default)]
     pub root_project: Option<String>,
     #[serde(default)]
     pub include: Vec<String>,
+    #[serde(default)]
+    pub repositories: RepositorySettings,
+    #[serde(default)]
+    pub dependency_resolution: Option<DependencyResolutionSettings>,
+}
+
+fn default_gradus_version() -> u32 {
+    1
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RepositorySettings {
+    #[serde(default)]
+    pub google: bool,
+    #[serde(default)]
+    pub maven_central: bool,
+    #[serde(default)]
+    pub gradle_plugin_portal: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DependencyResolutionSettings {
+    pub mode: String,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -89,7 +126,16 @@ pub fn load_build_file(dir: &Path) -> Result<BuildFile, LoadError> {
         path: path.clone(),
         source,
     })?;
-    toml::from_str(&text).map_err(|source| LoadError::Parse { path, source })
+    let parsed = if path.file_name().and_then(|name| name.to_str()) == Some("build.gradus") {
+        let normalized = custom::to_toml(&text).map_err(|source| LoadError::CustomParse {
+            path: path.clone(),
+            source: source.to_string(),
+        })?;
+        toml::from_str(&normalized).map_err(|source| LoadError::Parse { path, source })?
+    } else {
+        toml::from_str(&text).map_err(|source| LoadError::Parse { path, source })?
+    };
+    Ok(parsed)
 }
 
 pub fn load_settings_file(dir: &Path) -> Result<Option<SettingsFile>, LoadError> {
@@ -101,7 +147,15 @@ pub fn load_settings_file(dir: &Path) -> Result<Option<SettingsFile>, LoadError>
         path: path.clone(),
         source,
     })?;
-    let parsed = toml::from_str(&text).map_err(|source| LoadError::Parse { path, source })?;
+    let parsed = if path.file_name().and_then(|name| name.to_str()) == Some("settings.gradus") {
+        let normalized = custom::to_toml(&text).map_err(|source| LoadError::CustomParse {
+            path: path.clone(),
+            source: source.to_string(),
+        })?;
+        toml::from_str(&normalized).map_err(|source| LoadError::Parse { path, source })?
+    } else {
+        toml::from_str(&text).map_err(|source| LoadError::Parse { path, source })?
+    };
     Ok(Some(parsed))
 }
 
@@ -121,4 +175,7 @@ pub enum LoadError {
         path: PathBuf,
         source: toml::de::Error,
     },
+
+    #[error("failed to parse '{}': {source}", .path.display())]
+    CustomParse { path: PathBuf, source: String },
 }

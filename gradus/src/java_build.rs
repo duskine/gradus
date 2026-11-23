@@ -238,9 +238,12 @@ mod tests {
             project: ProjectSection {
                 name: "sample-app".to_owned(),
                 version: "1.2.3".to_owned(),
+                group: None,
                 jvm: Some("17".to_owned()),
             },
             dependencies: DependenciesSection::default(),
+            plugins: Vec::new(),
+            android: None,
         }
     }
 

@@ -7,9 +7,12 @@ fn fixture() -> BuildFile {
         project: ProjectSection {
             name: "example".into(),
             version: "0.1.0".into(),
+            group: None,
             jvm: Some("17".into()),
         },
         dependencies: Default::default(),
+        plugins: Vec::new(),
+        android: None,
     }
 }
 

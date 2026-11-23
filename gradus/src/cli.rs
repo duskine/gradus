@@ -5,7 +5,10 @@ use std::process::{Command as ProcessCommand, ExitCode};
 
 use crate::java_build::{build_project, clean_project, JavaTools};
 use crate::maven::resolve_dependencies;
-use crate::{graph_from_build_file, load_build_file, load_settings_file, BuildFile, TaskId};
+use crate::{
+    analyze_gradle_script, graph_from_build_file, load_build_file, load_settings_file,
+    BuildFile, DiagnosticLevel, TaskId,
+};
 use clap::{CommandFactory, Parser, Subcommand};
 
 #[derive(Parser)]
@@ -25,6 +28,13 @@ enum Command {
     Init,
     /// Parse the build and settings files and report any errors.
     Validate,
+    /// Analyze a Gradle project for constructs that cannot yet be ported to Gradus.
+    Port {
+        /// Source build system, currently `gradle`.
+        name: String,
+        /// Source build-system version, for example `8.7.3`.
+        version: String,
+    },
     /// Print the task graph derived from the build file.
     Tasks,
     /// Compile Java sources and package them as a JAR.
@@ -57,6 +67,7 @@ pub(crate) fn run() -> ExitCode {
     let code = match cli.command {
         Some(Command::Init) => cmd_init(),
         Some(Command::Validate) => cmd_validate(),
+        Some(Command::Port { name, version }) => cmd_port(&name, &version),
         Some(Command::Tasks) => cmd_tasks(),
         Some(Command::Build { dry_run, offline }) => cmd_build(dry_run, offline),
         Some(Command::Dependencies { offline }) => cmd_dependencies(offline),
@@ -91,7 +102,7 @@ fn cmd_init() -> u8 {
         .unwrap_or("project")
         .to_string();
     let content = format!(
-        "gradus_version = 1\n\n[project]\nname = \"{name}\"\nversion = \"0.1.0\"\njvm = \"17\"\n",
+        "[project]\nname = \"{name}\"\nversion = \"0.1.0\"\njvm = \"17\"\n",
         name = project_name,
     );
     let path = cwd.join(crate::BUILD_FILE_NAMES[0]);
@@ -126,6 +137,79 @@ fn cmd_validate() -> u8 {
         }
     }
     0
+}
+
+fn cmd_port(name: &str, version: &str) -> u8 {
+    if name != "gradle" {
+        eprintln!(
+            "error: `gradus port {name} {version}` is not supported yet; the initial port analyzer accepts `gradle <version>`"
+        );
+        return 2;
+    }
+    if version.trim().is_empty() {
+        eprintln!("error: source version must not be empty");
+        return 2;
+    }
+
+    let cwd = current_dir();
+    let candidates = [
+        "settings.gradle.kts",
+        "settings.gradle",
+        "build.gradle.kts",
+        "build.gradle",
+    ];
+    let mut found = false;
+    let mut diagnostics = Vec::new();
+    for relative in candidates {
+        let path = cwd.join(relative);
+        if !path.is_file() {
+            continue;
+        }
+        found = true;
+        match fs::read_to_string(&path) {
+            Ok(source) => diagnostics.extend(analyze_gradle_script(&path, &source).diagnostics),
+            Err(error) => {
+                eprintln!("error: cannot read '{}': {error}", path.display());
+                return 4;
+            }
+        }
+    }
+
+    if !found {
+        eprintln!("error: no Gradle build/settings script found in '{}'", cwd.display());
+        return 2;
+    }
+
+    println!("Gradle {version} migration preflight (read-only)");
+    if diagnostics.is_empty() {
+        println!("no known unsupported constructs detected");
+        println!("note: this is a static scan, not proof of full Gradle compatibility");
+        println!("note: configuration conversion and file writing are not implemented yet");
+        return 0;
+    }
+
+    for diagnostic in &diagnostics {
+        let level = match diagnostic.level {
+            DiagnosticLevel::Warning => "warning",
+            DiagnosticLevel::Error => "error",
+        };
+        eprintln!(
+            "{level}[{}]: {}:{}: {}\n  suggestion: {}",
+            diagnostic.code,
+            diagnostic.path.display(),
+            diagnostic.line,
+            diagnostic.message,
+            diagnostic.suggestion
+        );
+    }
+    let errors = diagnostics
+        .iter()
+        .filter(|diagnostic| diagnostic.level == DiagnosticLevel::Error)
+        .count();
+    let warnings = diagnostics.len() - errors;
+    println!("migration preflight found {errors} blocking issue(s) and {warnings} warning(s)");
+    println!("no files were changed; Gradle-to-Gradus conversion is not implemented yet");
+    if errors > 0 { 2 } else { 0 }
 }
 
 fn cmd_tasks() -> u8 {
